@@ -21,6 +21,10 @@ def get_args():
 def client_handler(data, address):
     # Aca tengo que ver que me pide el cliente
     # puede ser upload o download, ya comienza la etapa del protocolo
+    """
+    Aca el servidor va a recibir el paquete incial del cliente y este le va a pasar
+    el tamanio del archivo y el nombre
+    """
     print("client handler")
 
 
