@@ -1,1 +1,3 @@
 BUFFSIZE = 1024
+
+TIMEOUT = 1
