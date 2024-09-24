@@ -4,12 +4,16 @@ class Message():
 
 
 class ACK(Message):
-    def __init(self):
-        print("ACK")
+    def __init(self, seq_number):
+        self.seq_number = seq_number
+        #print("ACK")
+    
+    def encode_msg(self):
+        return f"{self.seq_number}".encode()
     
     def decode_msg(self):
-        return self.decode().split("|")
-
+        return self.decode()
+    
 
 class SYN(Message):
     def __init(self, filename, filesize, seq_number):
@@ -42,3 +46,8 @@ class FIN(Message):
         """
         
         """
+    def encode_msg(self):
+        return f"FIN".encode()
+    
+    def decode_msg(self):
+        return self.decode()

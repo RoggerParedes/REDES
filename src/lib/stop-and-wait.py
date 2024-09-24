@@ -31,31 +31,45 @@ def send_file(sock, address, filename, filepath):
     seq_number = 0
 
     syn_msg = SYN(filename, os.path.getsize(filepath), seq_number)
-    syn_msg_encoded = syn_msg.build_msg()
+    syn_msg_encoded = syn_msg.encode_msg()
 
     sock.sendto(syn_msg_encoded, address)
     print("SYN enviado")
 
-    msg_recv = sock.recvfrom(BUFFSIZE)
+    msg_recv, _ = sock.recvfrom(BUFFSIZE)
+    ack_msg_seq_number = ACK.decode_msg(msg_recv)
+
     
-    recv_seq_number = msg_recv.decode_msg()
+    with open(filepath, 'rb') as file_sending: #lee de a bytes
+        while True:
+            data = file_sending.read(BUFFSIZE)
+            if not data: #terminó el archivo
+                break
+            
+            seq_number += 1
+            
+            data_msg = DATA(seq_number, data)
+            data_msg_encoded = data_msg.encode_msg()
+            
+            while True: #retransmite hasta que llegue el ACK correcto
+                try:
+                    sock.sendto(data_msg_encoded, address)
+                    print("DATA enviado")
+                    sock.settimeout(TIMEOUT)
 
-    if recv_seq_number == seq_number: 
-        with open(filepath, 'rb') as file_sent: #lee de a bytes
-            while True:
-                data = file_sent.read(BUFFSIZE)
-                if not data: #terminó el archivo
-                    break
-                
-                seq_number += 1
-                
-                data_msg = DATA(seq_number, data)
-                data_msg_encoded = data_msg.encode_msg()
+                    msg_recv, _ = sock.recvfrom(BUFFSIZE)
+                    ack_msg_seq_number = ACK.decode_msg(msg_recv)
+                    
+                    if ack_msg_seq_number == seq_number:
+                        break
 
-                sock.sendto(data_msg_encoded, address)
+                except socket.timeout: 
+                    print("retransmite DATA por timeout")
+                    continue
 
-                #recvfrom()                
-
+    fin_msg = FIN()
+    sock.sendto(fin_msg.encode_msg(), address)
+    print("FIN enviado")
 
     # mando SYN
     # espero respuesta
