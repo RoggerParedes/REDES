@@ -23,9 +23,9 @@ class SYN(Message):
         return self.filename
     
     def encode_msg(self):
-        return f"{self.filename}"|{self.filesize}|{self.seq_number}.encode()
+        return f"{self.filename}|{self.filesize}|{self.seq_number}".encode()
 
-    def decode_msg(self):
+    #def decode_msg(self):
 
 
 
@@ -35,7 +35,7 @@ class DATA(Message):
         self.data = data
 
     def encode_msg(self, seq_number, data):
-        return f"{self.seq_number}"|{self.data}.encode()
+        return f"{self.seq_number}|{self.data}".encode()
 
 class FIN(Message):
     def __init(self):

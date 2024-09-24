@@ -12,7 +12,7 @@ def receive_file(sock, filename, filesize):
     # chequear isInstance o suponemos que el primer mensaje siempre lo es?
     syn_message = SYN(filename, filesize)
 
-    ret_filename(syn_message)
+    #ret_filename(syn_message)
 
 
     nro_seq, contenido = data.decode().split(":", 1)
@@ -41,7 +41,7 @@ def send_file(sock, address, filename, filepath):
     recv_seq_number = msg_recv.decode_msg()
 
     if recv_seq_number == seq_number: 
-        with open(filepath, 'rb') as file_sent:
+        with open(filepath, 'rb') as file_sent: #lee de a bytes
             while True:
                 data = file_sent.read(BUFFSIZE)
                 if not data: #terminó el archivo
@@ -54,7 +54,7 @@ def send_file(sock, address, filename, filepath):
 
                 sock.sendto(data_msg_encoded, address)
 
-                recvfrom()                
+                #recvfrom()                
 
 
     # mando SYN
