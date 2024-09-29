@@ -1,7 +1,16 @@
-import socket
+from socket import socket, AF_INET, SOCK_DGRAM
 import argparse
 import os
+import sys
 
+from lib.logger import *
+from lib.checksum import generate_checksum
+from lib.constants import MAX_FILE_SIZE
+from lib.exceptions import InvalidPortException, validate_port
+from lib.constants import *
+from lib.protocol import Start
+from lib.message_queue import MessageQueue
+from lib.stop_and_wait import upload
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -17,21 +26,46 @@ def get_args():
     return parser.parse_args()
 
 
-def get_file(src: str):
+
+def read_file(filepath):
     try:
-        if os.path.isfile(src):
-            with open(src, 'r') as file:
-                data = file.read
-        else:
-             print(f"Invalid source: {src}")
-    except Exception as e:
-        print(f"Error: {e}")                
+        with open(filepath, "r") as f:
+            data = f.read()
+        return data
+    except FileNotFoundError:
+        raise Exception(
+            "La ruta del archivo es inválida o el archivo no existe."
+        )
 
-
-def main():
-    args = get_args()
-    get_file(args.src)
-
-
+    
 if __name__ == "__main__":
-      main()
+    args = get_args()
+    logger.set_level_args(args.quiet, args.verbose)
+    logger.info(f"Iniciando carga del archivo en {args.host}:{args.port}")
+
+    try:
+        validate_port(int(args.port))
+    except InvalidPortException:
+        sys.exit(1)
+
+    server_addr = (args.host, int(args.port))
+    sock = socket(AF_INET, SOCK_DGRAM)
+    size = os.path.getsize(args.src)
+    if size > MAX_FILE_SIZE:
+        logger.error(f"El archivo es demasiado grande. Maximo tamanio es 4GB")
+        sock.close()
+    queue = MessageQueue(sock, server_addr)
+    packet = Start(OPERATION_DOWNLOAD, size, args.name).write()
+    packet = generate_checksum(packet)
+    queue.send(packet)
+    try:
+        with open(args.src, 'rb+') as file:
+            upload(queue, file)
+    except OSError:
+        logger.error(
+            f"Error el archivo que intentas subir cuya ruta es: \
+            {args.src} no existe "
+        )
+        sock.close()
+
+    sock.close()

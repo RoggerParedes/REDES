@@ -1,12 +1,15 @@
 from lib.logger import *
 import os
 
+
 def validate_port(port: int):
     if port < 1024 or port > 49151:
         raise InvalidPortException
     if port == 8080 or port == 8443:
         raise InvalidPortException
 
+class DownloaderNotReadyError(Exception):
+    pass
 
 def validate_directory(path: str):
     print(f"Validando ruta: {path}")
@@ -14,7 +17,6 @@ def validate_directory(path: str):
         print("Ruta valida")
     else:
         raise InvalidDirectoryException
-
 
 class InvalidPortException(Exception):
     def __init__(self):

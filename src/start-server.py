@@ -11,7 +11,8 @@ import sys
 from lib.exceptions import *
 import threading
 from lib.protocol import *
-from message_queue import MessageQueue, ThreadedMessageQueue
+from lib.message_queue import MessageQueue, ThreadedMessageQueue
+from lib.stop_and_wait import *
 
 def get_args():
     port = (int)(args.PORT)
@@ -24,11 +25,28 @@ def get_args():
     return verbose, quiet, ip, port, path
 
 
-def start_upload(queue, file_dir, file_name):
-    logger.info(f"Iniciando carga del archivo {file_name} ubicado en {file_dir}")
 
-def download(queue: MessageQueue, fd: BinaryIO, size):
-    logger.info(f"Iniciando descarga del archivo con tamanio {size}.")
+def start_upload(queue, file_dir, file_name):
+    if not os.path.isfile(file_dir):
+        logger.info(f'No se encuentra la ruta {file_dir}')
+        packet = Error(0, Error.FILE_NOT_FOUND).write()
+        packet = generate_checksum(packet)
+        queue.send(packet)
+        return
+
+    size = os.path.getsize(file_dir)
+    if size > MAX_FILE_SIZE:
+        logger.error(f"El archivo es demasiado grande. Maximo tamanio es 4GB")
+        return
+    packet = Start(OPERATION_DOWNLOAD, size, file_name).write()
+    packet = generate_checksum(packet)
+    queue.send(packet)
+    with open(file_dir, 'rb+') as file:
+        try:
+            upload(queue, file)
+        except timeout:
+            pass
+
 
 def new_connection(queue: ThreadedMessageQueue,
                    directory: str,
@@ -44,28 +62,30 @@ def new_connection(queue: ThreadedMessageQueue,
             except timeout:
                 pass
 
-class ClientHandler:
 
+
+class  ClientHandler:
     def __init__(self, sock: socket, directory):
         self.sock = sock
         self.directory = directory
-        self.clients = {} # Lista de clientes con [addr, queue, thread]
+        self.clients = {}  # : List[Tuple[addr, ThreadedMessageQueue, Thread]]
         self.running = False
         self.thread = threading.Thread(target=self._run)
-    
+
     def start(self):
         self.thread.start()
-    
+
     def _run(self):
         self.running = True
+        # loop principal
         while self.running:
             try:
                 data, addr = self.sock.recvfrom(MAX_PACKET_SIZE)
-                checksum, data_recv = verify_checksum(data) 
-                if not checksum:
+                check, recv_data = verify_checksum(data)
+                if not check:
                     continue
 
-                message = Message.read(data_recv)
+                message = Message.read(recv_data)
                 if message.type == Start.type:
                     queue = ThreadedMessageQueue(self.sock, addr, Queue())
                     queue.set_timeout(5)
@@ -90,9 +110,6 @@ class ClientHandler:
                     logger.debug(
                         "El servidor deja de escuchar nuevas conexiones")
 
-            except Exception as e:
-                logger.error(f"Ocurrio un error inesperado: {e}")
-    
     def close_clients(self):
         logger.debug('Cerrando las conexiones con todos los clientes')
         for addr, client in self.clients.items():
@@ -111,35 +128,29 @@ class ClientHandler:
         self.close_clients()
         logger.info('Frenando la ejecucion del servidor')
 
+
 def main():
     try:
-        verbose, quiet, ip, port, path = get_args()
-        if verbose:
-            print("Output increased...")
-            logger.set_level(2)
-        elif quiet:
-            print("Output decreased...")
-            logger.set_level(1)
-        else:
-            print("Default output...")
-            logger.set_level(2)
+        verbose, quiet, ip, port, directory = get_args()
     except InvalidPortException:
-        #logger.error(f"{e}")
         sys.exit(1)
     except InvalidDirectoryException:
         sys.exit(1)
 
-    server_socket = socket(AF_INET, SOCK_DGRAM)
+    logger.set_level_args(quiet, verbose)
+    logger.info(f"Iniciando servidor en {ip}:{port}")
+    logger.info(f"Almacenamiento del servidor en {directory}")
+
+    sock = socket(AF_INET, SOCK_DGRAM)
     try:
-        server_socket.bind((ip, port))
-    except OSError as e:
-        logger.error(f"No se puedo conectar al puerto indicado: {e}")
+        sock.bind((ip, port))
+    except OSError as exc:
+        logger.error(f'No se pudo conectar al puerto indicado: {exc.strerror}')
         sys.exit(1)
-    
-    server_socket.settimeout(TIMEOUT)
-    
-    listener = ClientHandler(server_socket, path)
-    listener.start()
+    sock.settimeout(TIMEOUT)
+
+    client_handler = ClientHandler(sock, directory)
+    client_handler.start()
     try:
         key = ''
         while key != 'q':
@@ -150,11 +161,9 @@ def main():
                 sleep(1)
     except KeyboardInterrupt:
         logger.debug('Interrupcion por teclado detectada')
-    except Exception as e:
-        logger.error(f"Ocurrio un error inesperado: {e}")
-    listener.stop()
+    client_handler.stop()
 
-    server_socket.close()
+    sock.close()
 
 
 if __name__ == "__main__":
