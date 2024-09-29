@@ -5,17 +5,60 @@ from protocol import *
 import os
 
 
+# ver si el seq_num lo incrementamos de a 1 o por bytes
+# dependiendo como esta implementado el resto
 
+# agregar el tipo de mensaje al principio?
 
 def receive_file(sock, filename, filesize):
-    data, client_address = sock.recvfrom(BUFFSIZE)
-    # chequear isInstance o suponemos que el primer mensaje siempre lo es?
-    syn_message = SYN(filename, filesize)
 
-    #ret_filename(syn_message)
+    while True:
+        msg_recv, client_address = sock.recvfrom(BUFFSIZE)
+        syn_msg = SYN("", 0, 0)
+        syn_msg.decode_msg(msg_recv)
+        syn_seq_number = syn_msg.get_seq_number()
 
+        ack_msg = ACK(syn_seq_number)
+        sock.sendto(ack_msg.encode_msg(), client_address)
+        print(f"ACK enviado para SYN: {syn_seq_number}")
 
-    nro_seq, contenido = data.decode().split(":", 1)
+        current_seq_number = syn_seq_number
+
+        with open(filename, 'wb') as file_receiving:
+            total_bytes_received = 0
+            while total_bytes_received < filesize:
+                try:
+                    sock.settimeout(TIMEOUT)
+                    msg_recv, _ = sock.recvfrom(BUFFSIZE)
+
+                    data_msg = DATA(0, b"")
+                    data_msg.decode_msg(msg_recv)
+                    data_seq_number = data_msg.get_seq_number()
+                    data_data = data_msg.get_data()
+
+                    if data_seq_number == current_seq_number:
+                        file_receiving.write(data_data)
+                        total_bytes_received += len(data_data)
+                        current_seq_number += 1
+
+                        ack_msg = ACK(data_seq_number)
+                        sock.sendto(ack_msg.encode_msg(), client_address)
+                        print(f"ACK enviado para DATA: {data_seq_number}")
+                    else:
+                        ack_msg = ACK(current_seq_number)
+                        sock.sendto(ack_msg.encode_msg(), client_address)
+                        print(f"ACK reenviado para el último DATA: {current_seq_number}")
+
+                except socket.timeout:
+                    print("Timeout al recibir DATA, retransmitiendo...")
+
+        fin_msg_recv, _ = sock.recvfrom(BUFFSIZE)
+        fin_msg = FIN()
+        fin_msg.decode_msg(fin_msg_recv)
+
+        print("Recepción de archivo completa")
+        break
+
 
     # escucho y agarro SYN
     # mando ACK
@@ -26,20 +69,43 @@ def receive_file(sock, filename, filesize):
     # llega FIN
 
 
-def send_file(sock, address, filename, filepath):
+def send_file(sock, address, filename, filepath): #el "three-way handshake" tendríamos que hacerlo acá o en client_handdler
     
+    
+    #---------------------------------------------------------------
     seq_number = 0
 
     syn_msg = SYN(filename, os.path.getsize(filepath), seq_number)
     syn_msg_encoded = syn_msg.encode_msg()
 
-    sock.sendto(syn_msg_encoded, address)
-    print("SYN enviado")
+    retries = 0
 
-    msg_recv, _ = sock.recvfrom(BUFFSIZE)
-    ack_msg_seq_number = ACK.decode_msg(msg_recv)
+    while retries < 4:
+        try:
+            sock.sendto(syn_msg_encoded, address)
+            print("SYN enviado")
+            sock.settimeout(TIMEOUT)
 
-    
+            msg_recv, _ = sock.recvfrom(BUFFSIZE)
+            ack_msg = ACK(0)
+            ack_msg.decode_msg(msg_recv)
+
+            if ack_msg.get_seq_num() != seq_number:
+                print("Número de secuencia de ACK no coincide con SYN, abortando")
+                break
+            else:
+                retries += 1
+        
+        except socket.timeout: 
+            print("retransmite SYN por timeout")
+            retries += 1
+
+    if retries == 3:
+        print("Falló la sincronización, abortando transmisión") #después de tres intentos aborta la transmisión
+        return
+
+    #---------------------------------------------------------------
+
     with open(filepath, 'rb') as file_sending: #lee de a bytes
         while True:
             data = file_sending.read(BUFFSIZE)
@@ -58,14 +124,14 @@ def send_file(sock, address, filename, filepath):
                     sock.settimeout(TIMEOUT)
 
                     msg_recv, _ = sock.recvfrom(BUFFSIZE)
-                    ack_msg_seq_number = ACK.decode_msg(msg_recv)
+                    ack_msg = ACK(0)
+                    ack_msg.decode_msg(msg_recv)
                     
-                    if ack_msg_seq_number == seq_number:
+                    if ack_msg.get_seq_num() == seq_number:
                         break
 
                 except socket.timeout: 
                     print("retransmite DATA por timeout")
-                    continue
 
     fin_msg = FIN()
     sock.sendto(fin_msg.encode_msg(), address)
