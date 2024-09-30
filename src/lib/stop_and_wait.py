@@ -51,7 +51,7 @@ def upload(queue: MessageQueue, fd: BinaryIO):
 # size es el parametro que esta al principio en start
 def download(queue: MessageQueue, fd: BinaryIO, size):
     queue.set_timeout(get_timeout())
-    logger.info("Comiendo bajada de archivo")
+    logger.info("Comenzo la descarga del archivo")
     read_count = 1
     timeout_count = 0
     rec_size = 0
