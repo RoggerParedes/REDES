@@ -1,4 +1,4 @@
-from lib.constants import *
+# from lib.constants import *
 
 
 class UnknownMessage(Exception):
@@ -59,7 +59,7 @@ class Start(Message):
         return Start(operation, file_size, file_name)
 
 
-# Tamanio del paquete data constante en 65536
+# Tamaño del paquete data constante en 65536
 class Data(Message):
     # uid es incremental y identifica que numero de paquete es
     type = 2

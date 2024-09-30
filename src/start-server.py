@@ -2,17 +2,21 @@ import argparse
 from queue import Queue
 from socket import socket, AF_INET, SOCK_DGRAM, timeout, SHUT_RD
 from time import sleep
-from typing import BinaryIO
-from lib.constants import *
+# from typing import BinaryIO
+from lib.constants import OPERATION_DOWNLOAD, OPERATION_UPLOAD, \
+    MAX_FILE_SIZE, MAX_PACKET_SIZE, TIMEOUT
 from lib.logger import logger
 from lib.checksum import verify_checksum, generate_checksum
-import traceback
+# import traceback
 import sys
-from lib.exceptions import *
+from lib.exceptions import validate_port, validate_directory, \
+    InvalidDirectoryException, InvalidPortException
 import threading
-from lib.protocol import *
-from lib.message_queue import MessageQueue, ThreadedMessageQueue
-from lib.stop_and_wait import *
+from lib.protocol import Start, Error, Message, NACK
+from lib.message_queue import ThreadedMessageQueue
+from lib.stop_and_wait import upload, download
+import os
+
 
 def get_args():
     port = (int)(args.PORT)
@@ -25,7 +29,6 @@ def get_args():
     return verbose, quiet, ip, port, path
 
 
-
 def start_upload(queue, file_dir, file_name):
     if not os.path.isfile(file_dir):
         logger.info(f'No se encuentra la ruta {file_dir}')
@@ -36,7 +39,7 @@ def start_upload(queue, file_dir, file_name):
 
     size = os.path.getsize(file_dir)
     if size > MAX_FILE_SIZE:
-        logger.error(f"El archivo es demasiado grande. Maximo tamanio es 4GB")
+        logger.error("El archivo es demasiado grande. El tamaño máximo es 4GB")
         return
     packet = Start(OPERATION_DOWNLOAD, size, file_name).write()
     packet = generate_checksum(packet)
@@ -63,8 +66,7 @@ def new_connection(queue: ThreadedMessageQueue,
                 pass
 
 
-
-class  ClientHandler:
+class ClientHandler:
     def __init__(self, sock: socket, directory):
         self.sock = sock
         self.directory = directory
@@ -126,7 +128,7 @@ class  ClientHandler:
         self.sock.close()
         self.thread.join()
         self.close_clients()
-        logger.info('Frenando la ejecucion del servidor')
+        logger.info('Frenando la ejecución del servidor')
 
 
 def main():
@@ -155,14 +157,14 @@ def main():
         key = ''
         while key != 'q':
             try:
-                key = input('Introduzca q para finalizar con la ejecucion del '
-                        'servidor\n')
-            except EOFError: # Esto ocurre solo si lo estamos corriendo fuera de la consola
+                key = input(
+                    'Introduzca q para finalizar la ejecucion del servidor\n')
+            except EOFError:
+                # Esto ocurre solo si lo estamos corriendo fuera de la consola
                 sleep(1)
     except KeyboardInterrupt:
-        logger.debug('Interrupcion por teclado detectada')
+        logger.debug('Interrupción por teclado detectada')
     client_handler.stop()
-
     sock.close()
 
 
@@ -176,17 +178,20 @@ if __name__ == "__main__":
                        help="decrease output verbosity",
                        action="store_true")
     parser.add_argument("-H", "--host", dest="ADDR", required=True,
-                        help="service IP address", action="store", type=str)
+                        help="service IP address",
+                        action="store", type=str)
     parser.add_argument("-p", "--port", dest="PORT", required=True,
-                        help="service port", action="store", type=int)
+                        help="service port",
+                        action="store", type=int)
     parser.add_argument("-s", "--storage", dest="PATH", required=True,
-                        help="storage dir path", action="store", type=str)
+                        help="storage dir path",
+                        action="store", type=str)
     args = parser.parse_args()
     try:
         main()
         logger.info("Cerrando servidor...")
         sys.exit(0)
     except Exception as e:
-        #traceback.print_exc()
+        # traceback.print_exc()
         print(e)
         sys.exit(1)

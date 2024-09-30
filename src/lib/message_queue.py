@@ -20,6 +20,7 @@ class MessageQueue:
     def recv(self) -> bytes:
         return self.sock.recvfrom(MAX_PACKET_SIZE)[0]
 
+
 class ThreadedMessageQueue(MessageQueue):
     que: Queue
     timeout: int
