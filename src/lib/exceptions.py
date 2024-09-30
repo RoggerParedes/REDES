@@ -1,4 +1,4 @@
-from lib.logger import *
+from lib.logger import logger
 import os
 
 
@@ -8,8 +8,10 @@ def validate_port(port: int):
     if port == 8080 or port == 8443:
         raise InvalidPortException
 
+
 class DownloaderNotReadyError(Exception):
     pass
+
 
 def validate_directory(path: str):
     print(f"Validando ruta: {path}")
@@ -18,9 +20,13 @@ def validate_directory(path: str):
     else:
         raise InvalidDirectoryException
 
+
 class InvalidPortException(Exception):
     def __init__(self):
-        logger.error("Debe ingresar un puerto mayor a 1024, menor a 49151, distinto del 8080 y del 8443.")
+        logger.error(
+            "Debe ingresar un puerto mayor a 1024, menor a 49151, "
+            "distinto del 8080 y del 8443.")
+
 
 class InvalidDirectoryException(Exception):
     def __init__(self):
