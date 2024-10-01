@@ -2,12 +2,10 @@ import argparse
 from queue import Queue
 from socket import socket, AF_INET, SOCK_DGRAM, timeout, SHUT_RD
 from time import sleep
-# from typing import BinaryIO
 from lib.constants import OPERATION_DOWNLOAD, OPERATION_UPLOAD, \
     MAX_FILE_SIZE, MAX_PACKET_SIZE, TIMEOUT
 from lib.logger import logger
 from lib.checksum import verify_checksum, generate_checksum
-# import traceback
 import sys
 from lib.exceptions import validate_port, validate_directory, \
     InvalidDirectoryException, InvalidPortException
@@ -98,7 +96,7 @@ class ClientHandler:
                     self.clients[addr] = (queue, client)
                     client.start()
                 elif addr in self.clients:
-                    self.clients[addr][0].que.put(data)
+                    self.clients[addr][0].queue.put(data)
                 else:
                     packet = NACK(0).write()
                     packet = generate_checksum(packet)
@@ -160,7 +158,6 @@ def main():
                 key = input(
                     'Introduzca q para finalizar la ejecucion del servidor\n')
             except EOFError:
-                # Esto ocurre solo si lo estamos corriendo fuera de la consola
                 sleep(1)
     except KeyboardInterrupt:
         logger.debug('Interrupción por teclado detectada')
@@ -192,6 +189,5 @@ if __name__ == "__main__":
         logger.info("Cerrando servidor...")
         sys.exit(0)
     except Exception as e:
-        # traceback.print_exc()
-        print(e)
+        logger.error(e)
         sys.exit(1)

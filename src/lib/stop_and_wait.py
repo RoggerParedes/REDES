@@ -64,9 +64,7 @@ def download(queue: MessageQueue, fd: BinaryIO, size):
             check, rec_data = verify_checksum(receive)
             if check:
                 message = Message.read(rec_data)
-                logger.debug(
-                    f"Se recibe paquete tipo {message.type} uid {message.uid} "
-                    "y se esperaba {read_count}")
+                logger.debug(f"Se recibe paquete tipo {message.type} uid {message.uid} y se esperaba {read_count}")
                 if message.type == Data.type and message.uid == read_count:
                     logger.debug("Se escribe la data")
                     rec_size += len(message.data)

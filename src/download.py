@@ -19,16 +19,6 @@ def get_args():
     parser.add_argument('-n', '--name', type=str, required=True, help="file name")
     return parser.parse_args()
 
-def main():
-    print(f"Host: {args.host}")
-    print(f"Port: {args.port}")
-    print(f"Destination File Path: {args.dst}")
-    print(f"File Name: {args.name}")
-    if args.verbose:
-        print("Verbose mode enabled")
-    if args.quiet:
-        print("Quiet mode enabled")
-
 
 if __name__ == "__main__":
     args = get_args()

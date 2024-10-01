@@ -8,11 +8,9 @@ MAX_PACKET_SIZE = 65536  # maximo que permite la red
 # Lectura del archivo
 READ_SIZE = 64
 
-# Cuanto tiempo en segundos usamos de timeout
-TIMEOUT = 2
 # Cuantos timeouts seguidos antes de que tomemos el otro lado de la conexion
 # como muerto
-MAX_TIMES_TIMEOUT = 5
+MAX_TIMES_TIMEOUT = 5 # A eleccion
 
 # Codigos Numericos
 OPERATION_UPLOAD = 0

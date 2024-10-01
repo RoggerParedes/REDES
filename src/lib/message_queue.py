@@ -5,40 +5,40 @@ from lib.constants import MAX_PACKET_SIZE
 
 
 class MessageQueue:
-    sock: socket
+    _socket: socket
 
     def __init__(self, sock, addr):
-        self.sock = sock
+        self._socket = sock
         self.addr = addr
 
     def set_timeout(self, seconds):
-        return self.sock.settimeout(seconds)
+        return self._socket.settimeout(seconds)
 
     def send(self, message):
-        return self.sock.sendto(message, self.addr)
+        return self._socket.sendto(message, self.addr)
 
     def recv(self) -> bytes:
-        return self.sock.recvfrom(MAX_PACKET_SIZE)[0]
+        return self._socket.recvfrom(MAX_PACKET_SIZE)[0]
 
 
 class ThreadedMessageQueue(MessageQueue):
-    que: Queue
+    queue: Queue
     timeout: int
 
     def __init__(self, sock, addr, que: Queue):
         super().__init__(sock, addr)
-        self.que = que
+        self.queue = que
         self.timeout = 1
 
     def set_timeout(self, seconds):
         self.timeout = seconds
-        return self.sock.settimeout(seconds)
+        return self._socket.settimeout(seconds)
 
     def send(self, message):
-        return self.sock.sendto(message, self.addr)
+        return self._socket.sendto(message, self.addr)
 
     def recv(self) -> bytes:
         try:
-            return self.que.get(timeout=self.timeout)
+            return self.queue.get(timeout=self.timeout)
         except Empty:
             raise timeout
