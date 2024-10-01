@@ -9,15 +9,12 @@ def validate_port(port: int):
         raise InvalidPortException
 
 
-class DownloaderNotReadyError(Exception):
+class DownloaderNotReadyException(Exception):
     pass
 
 
 def validate_directory(path: str):
-    print(f"Validando ruta: {path}")
-    if os.path.exists(path):
-        print("Ruta valida")
-    else:
+    if not os.path.exists(path):
         raise InvalidDirectoryException
 
 

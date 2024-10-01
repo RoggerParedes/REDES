@@ -1,5 +1,5 @@
 BUFFSIZE = 1024
-TIMEOUT = 2
+TIMEOUT = 1
 MAX_PACKET_SIZE = 65536  # maximo que permite la red
 
 
@@ -10,7 +10,7 @@ READ_SIZE = 64
 
 # Cuantos timeouts seguidos antes de que tomemos el otro lado de la conexion
 # como muerto
-MAX_TIMES_TIMEOUT = 5 # A eleccion
+MAX_TIMES_TIMEOUT = 3 # A eleccion
 
 # Codigos Numericos
 OPERATION_UPLOAD = 0

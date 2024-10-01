@@ -31,12 +31,12 @@ otra terminal:
 ```sh
 $ python3 src/upload.py -v -H 10.0.0.1 -p 5005 -s ruta_archivo -n nombre_archivo
 ```
-- ``ruta_archivo`` es la ruta al archivo a subir.
+- ``ruta_archivo`` es la ruta local al archivo a subir en el servidor.
 - ``nombre_archivo`` es el nombre que el archivo tendrá en el servidor.
 
 O, mediante el script
 ```sh
-$ ./run_upload /data_server pdf1
+$ ./run_upload /home/dylan/Desktop/archivo.txt archivo.txt
 ```
 
 Para conectar un **cliente** que realice la operación **download**, ejecutamos

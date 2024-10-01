@@ -7,4 +7,4 @@ if [ $# -ne 2 ]
     echo "Se necesitan 2 argumentos"
 fi
 
-python3 src/upload.py -v -H 10.0.0.1 -p 5005 -s $1 -n $2
+python3 src/upload.py -v -H 127.0.0.0 -p 12000 -s $1 -n $2

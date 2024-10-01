@@ -1,4 +1,5 @@
 import argparse
+import platform
 from queue import Queue
 from socket import socket, AF_INET, SOCK_DGRAM, timeout, SHUT_RD
 from time import sleep
@@ -156,7 +157,19 @@ def main():
         while key != 'q':
             try:
                 key = input(
-                    'Introduzca q para finalizar la ejecucion del servidor\n')
+                    "Introduzca 'q' para finalizar la ejecucion del servidor\nIntroduzca 'i' para ver informacion sobre el servidor.\nIntroduzca 'c' para limpiar la consola.\n")
+                if key == 'i':
+                    logger.info(f"Servidor corriendo en {ip}:{port}")
+                    logger.info(f"Servidor almacenando archivos en {directory}\n##### Archivos almacenados #####")
+                    files = os.listdir(directory)
+                    for file in files:
+                        logger.info(file)
+                if key == 'c':
+                    sistema_operativo = platform.system()
+                    if sistema_operativo == "Windows":
+                        os.system('cls')
+                    else:
+                        os.system('clear')
             except EOFError:
                 sleep(1)
     except KeyboardInterrupt:

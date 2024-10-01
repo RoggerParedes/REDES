@@ -6,7 +6,7 @@ from lib.protocol import Data, Message, ACK, NACK
 from lib.constants import READ_SIZE, TIMEOUT, MAX_TIMES_TIMEOUT
 from lib.logger import logger
 from lib.message_queue import MessageQueue
-from lib.exceptions import DownloaderNotReadyError
+from lib.exceptions import DownloaderNotReadyException
 import time
 
 def get_timeout():
@@ -21,7 +21,7 @@ def pretty_print(mensaje: str, is_verbose: bool):
 def upload(queue: MessageQueue, fd: BinaryIO):
     start = time.time()
     queue.set_timeout(get_timeout())
-    logger.info("Comiendo subida de archivo con SAW")
+    logger.info("Subiendo archivo con algoritmo Stop & Wait")
     upload_count = 1
     timeout_count = 0
     data = fd.read(READ_SIZE)
@@ -37,15 +37,13 @@ def upload(queue: MessageQueue, fd: BinaryIO):
             check, rec_data = verify_checksum(receive)
             if check:
                 message = Message.read(rec_data)
-                logger.debug(
-                    f"Se recibe paquete tipo {message.type} uid {message.uid}")
+                logger.debug(f"Se recibe paquete tipo {message.type} uid {message.uid}")
                 if message.type == ACK.type and message.uid == upload_count:
                     data = fd.read(READ_SIZE)
                     upload_count += 1
-
-                # Caso donde el downloader no recibe antes el start
+                # Caso donde el downloader no recibe priemro el mensaje start
                 elif message.type == NACK.type and message.uid == 0:
-                    raise DownloaderNotReadyError()
+                    raise DownloaderNotReadyException()
         except timeout as e:
             timeout_count += 1
             if timeout_count > MAX_TIMES_TIMEOUT:
@@ -57,14 +55,14 @@ def upload(queue: MessageQueue, fd: BinaryIO):
         f"Tiempo de subida: {(time.time() - start):.2f} segundos")
 
 
-# size es el parametro que está al principio en start
+# size es el parametro que esta al principio en el mensaje start
 def download(queue: MessageQueue, fd: BinaryIO, size):
     queue.set_timeout(get_timeout())
     logger.info("Comenzo la descarga del archivo")
     read_count = 1
     timeout_count = 0
-    rec_size = 0
-    while rec_size < size:
+    recv_size = 0
+    while recv_size < size:
         read_flag = False
         try:
             receive = queue.recv()
@@ -74,8 +72,7 @@ def download(queue: MessageQueue, fd: BinaryIO, size):
                 message = Message.read(rec_data)
                 logger.debug(f"Se recibe paquete tipo {message.type} uid {message.uid} y se esperaba {read_count}")
                 if message.type == Data.type and message.uid == read_count:
-                    logger.debug("Se escribe la data")
-                    rec_size += len(message.data)
+                    recv_size += len(message.data)
                     fd.write(message.data)
                     read_flag = True
                     packet = ACK(read_count).write()
@@ -83,12 +80,9 @@ def download(queue: MessageQueue, fd: BinaryIO, size):
                     read_count += 1
                 elif message.type == Data.type and message.uid < read_count:
                     read_flag = True
-                    logger.debug(
-                        f"Se reenvía el ACK {message.uid} si no era el último "
-                        "que se esperaba")
+                    logger.debug(f"Se reenvía el ACK {message.uid}")
                     packet = ACK(message.uid).write()
                     packet = generate_checksum(packet)
-
             if not read_flag:
                 packet = NACK(read_count).write()
                 packet = generate_checksum(packet)
@@ -98,5 +92,4 @@ def download(queue: MessageQueue, fd: BinaryIO, size):
             if timeout_count > MAX_TIMES_TIMEOUT:
                 logger.error("La espera de datos hizo timeout")
                 raise e
-
-    logger.info("Terminó la bajada del archivo")
+    logger.info("Archivo descargado correctamente.")
