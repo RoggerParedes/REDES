@@ -10,7 +10,7 @@ raíz del proyecto luego de clonarlo.
 La línea de ejecución para el **servidor** según lo indicado por la cátedra, es:
 
 ```sh
-$ python3 src/start-server.py -v -H 127.0.0.0 -p 12000 -s src/Storage
+$ python3 src/start-server.py -v -H 127.0.0.0 -p 12000 -s src/data_server
 ```
 Ademas, proporcionamos scripts para facilitar la ejecucion del servidor y los dos tipos de clientes.\ 
 Primero otorgar permisos de ejecucion con
