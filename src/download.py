@@ -39,7 +39,6 @@ if __name__ == "__main__":
         packet = Start(OPERATION_UPLOAD, 0, args.name).write()
         packet_check = generate_checksum(packet)
         queue.send(packet_check)
-
         recv_packet = queue.recv()
         checksum, recv_data = verify_checksum(recv_packet)
         if checksum:
@@ -51,4 +50,6 @@ if __name__ == "__main__":
                 logger.error(Error.get_message_error(message.error_type))
     except socket.timeout:
         logger.error("El servidor no responde...")
+    except Exception as e:
+        logger.error(f"Ocurrio un error desconocido: {e}")
     client_socket.close()
