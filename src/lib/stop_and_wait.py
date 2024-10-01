@@ -7,16 +7,21 @@ from lib.constants import READ_SIZE, TIMEOUT, MAX_TIMES_TIMEOUT
 from lib.logger import logger
 from lib.message_queue import MessageQueue
 from lib.exceptions import DownloaderNotReadyError
-
+import time
 
 def get_timeout():
     return TIMEOUT
 
+def pretty_print(mensaje: str, is_verbose: bool):
+    if is_verbose == False:
+        return
+    print(mensaje)
 
 # en este punto la comunicación ya debe estar establecida
 def upload(queue: MessageQueue, fd: BinaryIO):
+    start = time.time()
     queue.set_timeout(get_timeout())
-    logger.info("Comiendo subida de archivo")
+    logger.info("Comiendo subida de archivo con SAW")
     upload_count = 1
     timeout_count = 0
     data = fd.read(READ_SIZE)
@@ -46,7 +51,10 @@ def upload(queue: MessageQueue, fd: BinaryIO):
             if timeout_count > MAX_TIMES_TIMEOUT:
                 logger.error("La espera del ACK hizo timeout")
                 raise e
-    logger.info("Terminó la subida del archivo")
+    
+    logger.info("Termino la subida del archivo")
+    logger.info(
+        f"Tiempo de subida: {(time.time() - start):.2f} segundos")
 
 
 # size es el parametro que está al principio en start
