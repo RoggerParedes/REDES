@@ -10,9 +10,10 @@ raíz del proyecto luego de clonarlo.
 La línea de ejecución para el **servidor** según lo indicado por la cátedra, es:
 
 ```sh
-$ python3 src/start-server.py -v -H 127.0.0.0 -p 12000 -s src/data_server
+$ python3 src/start-server.py -v -H 10.0.0.1 -p 5005 -s src/data_server
 ```
-Ademas, proporcionamos scripts para facilitar la ejecucion del servidor y los dos tipos de clientes.\ 
+Ademas, proporcionamos scripts para facilitar la ejecucion del servidor y los dos tipos de clientes.
+
 Primero otorgar permisos de ejecucion con
 ```sh
 $ chmod +x ./run_*
@@ -28,7 +29,7 @@ Para conectar un **cliente** que realice la operación **upload**, ejecutamos en
 otra terminal:
 
 ```sh
-$ python3 src/upload.py -v -H 127.0.0.1 -p 12002 -s ruta_a_archivo -n nombre_archivo
+$ python3 src/upload.py -v -H 10.0.0.1 -p 5005 -s ruta_archivo -n nombre_archivo
 ```
 - ``ruta_archivo`` es la ruta al archivo a subir.
 - ``nombre_archivo`` es el nombre que el archivo tendrá en el servidor.
@@ -42,11 +43,11 @@ Para conectar un **cliente** que realice la operación **download**, ejecutamos
 en otra terminal:
 
 ```sh
-$ python3 src/download.py -v -H 127.0.0.1 -p 12002 -s ruta_destino -n nombre_archivo
+$ python3 src/download.py -v -H 10.0.0.1 -p 5005 -s ruta_destino -n nombre_archivo
 ```
 
-- ``ruta_archivo`` es la ruta al archivo a subir.
-- ``nombre_archivo`` es el nombre que el archivo tendrá en el servidor.
+- ``ruta_destino`` es la ruta en el servidor al archivo a descargar.
+- ``nombre_archivo`` es el nombre que el archivo tiene en el servidor.
 
 O, mediante el script
 ```sh
@@ -57,7 +58,7 @@ Para obtener más información de los parametros que reciben estos dos scripts
 usar los siguientes comandos:
 
 ```sh
-$ ython3 src/upload.py --help
+$ python3 src/upload.py --help
 $ python3 src/download.py --help
 ```
 
