@@ -78,6 +78,7 @@ def download(queue: MessageQueue, fd: BinaryIO, size):
                 packet = NACK(read_count).write()
                 packet = generate_checksum(packet)
             queue.send(packet)
+            logger.info("Descarga {:,.3f}%".format((rec_size/size)*100))
         except timeout as e:
             timeout_count += 1
             if timeout_count > MAX_TIMES_TIMEOUT:
