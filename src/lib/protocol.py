@@ -4,10 +4,10 @@
 READ_SIZE = 4096
 
 # Cuanto tiempo en segundos usamos de timeout
-TIMEOUT = 0.5
+TIMEOUT = 0.05
 
 # Cuantos timeouts seguidos antes de que tomemos el otro lado de la conexion como muerto
-MAX_TIMES_TIMEOUT = 20
+MAX_TIMES_TIMEOUT = 50
 
 # Codigos Numericos
 OPERATION_UPLOAD = 0
