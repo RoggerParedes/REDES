@@ -33,18 +33,6 @@ def get_args():
                         help="file name")
     return parser.parse_args()
 
-
-def read_file(filepath):
-    try:
-        with open(filepath, "r") as f:
-            data = f.read()
-        return data
-    except FileNotFoundError:
-        raise Exception(
-            "La ruta del archivo es inválida o el archivo no existe."
-        )
-
-
 if __name__ == "__main__":
     args = get_args()
     logger.set_level_args(args.quiet, args.verbose)

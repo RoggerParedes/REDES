@@ -2,7 +2,7 @@ import sys
 import argparse
 from socket import socket, AF_INET, SOCK_DGRAM
 from lib.checksum import generate_checksum, verify_checksum
-from lib.constants import OPERATION_UPLOAD
+from lib.constants import OPERATION_UPLOAD, TIMEOUT
 from lib.logger import logger
 from lib.exceptions import validate_port, InvalidPortException
 from lib.message_queue import MessageQueue
@@ -23,18 +23,15 @@ def get_args():
 if __name__ == "__main__":
     args = get_args()
     logger.set_level_args(args.quiet, args.verbose)
-
     try:
         validate_port(int(args.port))
     except InvalidPortException:
         sys.exit(1)
-    
     logger.info(f"Comenzo la descarga del archivo {args.name} en la carpeta {args.dst} proveniente del servidor en {args.host}:{args.port}")
     server_addr = (args.host,int(args.port))
     client_socket = socket(AF_INET, SOCK_DGRAM)
     queue = MessageQueue(client_socket, server_addr)
-    queue.set_timeout(3)
-
+    queue.set_timeout(TIMEOUT)
     try:
         packet = Start(OPERATION_UPLOAD, 0, args.name).write()
         packet_check = generate_checksum(packet)
@@ -44,12 +41,13 @@ if __name__ == "__main__":
         if checksum:
             message = Message.read(recv_data)
             if message.type == Start.type:
-                with open(args.name, 'wb+') as file:
+                with open(args.dst+args.name, 'wb+') as file:
                     download(queue, file, message.file_size)
             elif message.type == Error.type:
-                logger.error(Error.get_message_error(message.error_type))
+                logger.error(Error.get_error_msg(message.error_type))
     except socket.timeout:
         logger.error("El servidor no responde...")
     except Exception as e:
         logger.error(f"Ocurrio un error desconocido: {e}")
+    logger.info(f"El archivo {args.name} se descargo correctamente en la direccion {args.dst}")
     client_socket.close()
