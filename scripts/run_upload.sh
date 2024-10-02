@@ -8,4 +8,4 @@ if [ $# -ne 2 ]
 fi
 
 cd ..
-python3 src/upload.py -v -H 127.0.0.0 -p 12000 -s $1 -n $2
+python3 src/upload.py -v -H 127.0.0.0 -p 12000 -s $1 -n $2 -v

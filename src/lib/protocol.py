@@ -1,13 +1,13 @@
 ## Parametros del protocolo del programa
 
 # Cuanto leemos de un archivo como maximo
-READ_SIZE = 64
+READ_SIZE = 4096
 
 # Cuanto tiempo en segundos usamos de timeout
-TIMEOUT = 2
+TIMEOUT = 0.5
 
 # Cuantos timeouts seguidos antes de que tomemos el otro lado de la conexion como muerto
-MAX_TIMES_TIMEOUT = 5
+MAX_TIMES_TIMEOUT = 20
 
 # Codigos Numericos
 OPERATION_UPLOAD = 0

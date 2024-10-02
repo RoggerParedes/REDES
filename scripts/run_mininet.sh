@@ -8,4 +8,5 @@ if [ $# -ne 2 ]
     echo "Se necesitan 2 argumentos"
 fi
 
+cd ..
 sudo mn --custom $PWD/src/lib/topology.py --topo mytopo,$1,$2 --mac -x # el -x abre xterm

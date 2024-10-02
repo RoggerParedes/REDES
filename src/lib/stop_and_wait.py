@@ -48,6 +48,7 @@ def upload(queue: MessageQueue, fd: BinaryIO):
 # El parámetro size aca espera el valor dado al principio
 # de la comunicación el mensaje Start
 def download(queue: MessageQueue, fd: BinaryIO, size):
+    logger.info(f"Tamanio total del archivo: {size}")
     queue.set_timeout(get_timeout())
     read_count = 1
     timeout_count = 0
@@ -78,6 +79,7 @@ def download(queue: MessageQueue, fd: BinaryIO, size):
                 packet = NACK(read_count).write()
                 packet = generate_checksum(packet)
             queue.send(packet)
+            logger.info("Descarga {:,.3f}%".format((rec_size/size)*100))
         except timeout as e:
             timeout_count += 1
             if timeout_count > MAX_TIMES_TIMEOUT:
