@@ -8,7 +8,7 @@ class DownloaderNotReadyError(Exception):
 
 class InvalidPortException(Exception):
     def __init__(self):
-        logger.error('ERROR - Puerto Invalido: debe ingresar un puerto que:\
+        logger.error('Puerto Invalido: debe ingresar un puerto que:\
               \n1) Sea mayor a 1024 \
               \n2) Sea distinto al 8080 y 8443\
               \n3) Sea menor a 65535 valor maximo de un puerto')
@@ -16,8 +16,7 @@ class InvalidPortException(Exception):
 
 class InvalidDirectoryException(Exception):
     def __init__(self):
-        logger.error('ERROR - El directorio ingresado para \
-                     almacenar los archivos no existe')
+        logger.error('El directorio ingresado para almacenar los archivos no existe')
 
 
 def validate_port(port: int):
