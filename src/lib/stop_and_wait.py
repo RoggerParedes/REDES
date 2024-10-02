@@ -15,6 +15,7 @@ def get_timeout():
 # Estos métodos esperan que ya haya comenzado la comunicación
 # reciben el socket abierto y un file descriptor abierto para ir escribiendo la data recv
 def upload(queue: MessageQueue, fd: BinaryIO):
+    logger.info("ALGORITMO -> STOP & WAIT")
     queue.set_timeout(get_timeout())
     upload_count = 1
     timeout_count = 0
@@ -48,6 +49,7 @@ def upload(queue: MessageQueue, fd: BinaryIO):
 # El parámetro size aca espera el valor dado al principio
 # de la comunicación el mensaje Start
 def download(queue: MessageQueue, fd: BinaryIO, size):
+    logger.info("ALGORITMO -> STOP & WAIT")
     queue.set_timeout(get_timeout())
     read_count = 1
     timeout_count = 0
