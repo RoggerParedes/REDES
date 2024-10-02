@@ -18,6 +18,7 @@ class MessageQueue:
         return self._socket.sendto(message, self.addr)
 
     def recv(self) -> bytes:
+        ret = b''
         try:
             ret = self._socket.recvfrom(MAX_PACKET_SIZE)[0]
         except Exception as e:

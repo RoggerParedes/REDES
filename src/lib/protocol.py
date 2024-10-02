@@ -1,6 +1,3 @@
-# from lib.constants import *
-
-
 class UnknownMessage(Exception):
     pass
 

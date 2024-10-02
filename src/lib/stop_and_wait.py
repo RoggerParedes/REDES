@@ -1,19 +1,19 @@
 from socket import timeout
 from typing import BinaryIO
 
-from lib.checksum import generate_checksum, verify_checksum
-from lib.protocol import Data, Message, ACK, NACK
-from lib.constants import READ_SIZE, TIMEOUT, MAX_TIMES_TIMEOUT
-from lib.logger import logger
-from lib.message_queue import MessageQueue
-from lib.exceptions import DownloaderNotReadyException
+from src.lib.checksum import generate_checksum, verify_checksum
+from src.lib.protocol import Data, Message, ACK, NACK
+from src.lib.constants import READ_SIZE, TIMEOUT, MAX_TIMES_TIMEOUT
+from src.lib.logger import logger
+from src.lib.message_queue import MessageQueue
+from src.lib.exceptions import DownloaderNotReadyException
 import time
 
 def get_timeout():
     return TIMEOUT
 
 def pretty_print(mensaje: str, is_verbose: bool):
-    if is_verbose == False:
+    if not is_verbose:
         return
     print(mensaje)
 
@@ -49,7 +49,6 @@ def upload(queue: MessageQueue, fd: BinaryIO):
             if timeout_count > MAX_TIMES_TIMEOUT:
                 logger.error("La espera del ACK hizo timeout")
                 raise e
-    
     logger.info("Termino la subida del archivo")
     logger.info(
         f"Tiempo de subida: {(time.time() - start):.2f} segundos")
