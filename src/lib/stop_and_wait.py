@@ -8,14 +8,11 @@ from lib.message_queue import MessageQueue
 from lib.exceptions import DownloaderNotReadyError
 
 
-def get_timeout():
-    return TIMEOUT
-
-
 # Estos métodos esperan que ya haya comenzado la comunicación
 # reciben el socket abierto y un file descriptor abierto para ir escribiendo la data recv
 def upload(queue: MessageQueue, fd: BinaryIO):
-    queue.set_timeout(get_timeout())
+    logger.info("ALGORITMO -> STOP & WAIT")
+    queue.set_timeout(TIMEOUT)
     upload_count = 1
     timeout_count = 0
     data = fd.read(READ_SIZE)
@@ -48,8 +45,8 @@ def upload(queue: MessageQueue, fd: BinaryIO):
 # El parámetro size aca espera el valor dado al principio
 # de la comunicación el mensaje Start
 def download(queue: MessageQueue, fd: BinaryIO, size):
-    logger.info(f"Tamanio total del archivo: {size}")
-    queue.set_timeout(get_timeout())
+    logger.info("ALGORITMO -> STOP & WAIT")
+    queue.set_timeout(TIMEOUT)
     read_count = 1
     timeout_count = 0
     rec_size = 0

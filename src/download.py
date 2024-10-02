@@ -8,7 +8,7 @@ from lib.exceptions import validate_port, validate_directory, InvalidPortExcepti
 from lib.logger import logger
 from lib.message_queue import MessageQueue
 from lib.protocol import Start, OPERATION_UPLOAD, Message, Error, MAX_TIMES_TIMEOUT
-from lib.stop_and_wait import download
+from lib.version import download
 
 
 def get_args():
