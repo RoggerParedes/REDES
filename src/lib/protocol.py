@@ -34,6 +34,8 @@ class Message:
         _type = value[0]
         if _type == Start.type:
             return Start.read(value)
+        if _type == SACK.type:
+            return SACK.read(value)
         if _type == Data.type:
             return Data.read(value)
         if _type == ACK.type:
@@ -153,12 +155,29 @@ class SACK(Message):
         self.received_blocks = received_blocks
 
     def write(self):
-        sack_data = ",".join(f"{start}-{end}" for start, end in self.received_blocks)
-        return sack_data.encode()
+        # Codificamos el UID y el número de bloques
+        data = self.type.to_bytes(1, 'big') + \
+               self.uid.to_bytes(4, 'big') + \
+               len(self.received_blocks).to_bytes(4, 'big')
+
+        # Codificamos cada bloque en binario
+        for start, end in self.received_blocks:
+            data += start.to_bytes(4, 'big') + end.to_bytes(4, 'big')
+
+        return data
 
     @classmethod
-    def read(cls, data: bytes):
-        base_message = Message.read(data)
-        sack_data = data[len(base_message):].decode()
-        blocks = [(int(start), int(end)) for start, end in (block.split('-') for block in sack_data.split(','))]
-        return SACK(base_message.uid, blocks)
+    def read(cls, value: bytes):
+        uid = int.from_bytes(value[1:5], 'big')
+        num_blocks = int.from_bytes(value[5:9], 'big')
+        blocks = []
+
+        # Leer cada bloque de 8 bytes (4 bytes para start y 4 bytes para end)
+        offset = 9
+        for _ in range(num_blocks):
+            start = int.from_bytes(value[offset:offset+4], 'big')
+            end = int.from_bytes(value[offset+4:offset+8], 'big')
+            blocks.append((start, end))
+            offset += 8
+
+        return SACK(uid, blocks)
