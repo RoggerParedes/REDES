@@ -1,6 +1,6 @@
 from socket import timeout
 from typing import BinaryIO
-
+import time
 from lib.checksum import generate_checksum, verify_checksum
 from lib.protocol import Data, Message, ACK, NACK, READ_SIZE, TIMEOUT, MAX_TIMES_TIMEOUT
 from lib.logger import logger
@@ -16,6 +16,7 @@ def get_timeout():
 # reciben el socket abierto y un file descriptor abierto para ir escribiendo la data recv
 def upload(queue: MessageQueue, fd: BinaryIO):
     queue.set_timeout(get_timeout())
+    start_time = time.time();
     upload_count = 1
     timeout_count = 0
     data = fd.read(READ_SIZE)
@@ -42,6 +43,10 @@ def upload(queue: MessageQueue, fd: BinaryIO):
             if timeout_count > MAX_TIMES_TIMEOUT:
                 logger.error("La espera del ACK hizo timeout")
                 raise e
+    end_time = time.time()
+    total_time = end_time - start_time
+    minutos, segundos =divmod(total_time, 60)
+    logger.info(f"Tiempo de ejecucion: { minutos } minutos y {segundos} segundos ")
     logger.info("Archivo enviado con exito.")
 
 
