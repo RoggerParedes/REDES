@@ -8,15 +8,11 @@ from lib.message_queue import MessageQueue
 from lib.exceptions import DownloaderNotReadyError
 
 
-def get_timeout():
-    return TIMEOUT
-
-
 # Estos métodos esperan que ya haya comenzado la comunicación
 # reciben el socket abierto y un file descriptor abierto para ir escribiendo la data recv
 def upload(queue: MessageQueue, fd: BinaryIO):
-    queue.set_timeout(get_timeout())
-    start_time = time.time();
+    logger.info("ALGORITMO -> STOP & WAIT")
+    queue.set_timeout(TIMEOUT)
     upload_count = 1
     timeout_count = 0
     data = fd.read(READ_SIZE)
@@ -53,8 +49,8 @@ def upload(queue: MessageQueue, fd: BinaryIO):
 # El parámetro size aca espera el valor dado al principio
 # de la comunicación el mensaje Start
 def download(queue: MessageQueue, fd: BinaryIO, size):
-    logger.info(f"Tamanio total del archivo: {size}")
-    queue.set_timeout(get_timeout())
+    logger.info("ALGORITMO -> STOP & WAIT")
+    queue.set_timeout(TIMEOUT)
     read_count = 1
     timeout_count = 0
     rec_size = 0
@@ -73,17 +69,14 @@ def download(queue: MessageQueue, fd: BinaryIO, size):
                     fd.write(message.data)
                     read_flag = True
                     packet = ACK(read_count).write()
-                    packet = generate_checksum(packet)
                     read_count += 1
                 elif message.type == Data.type and message.uid < read_count:
                     read_flag = True
                     logger.debug(f"Reenviamos el ACK {message.uid} para sincronizar")
                     packet = ACK(message.uid).write()
-                    packet = generate_checksum(packet)
             if not read_flag:
                 packet = NACK(read_count).write()
-                packet = generate_checksum(packet)
-            queue.send(packet)
+            queue.send(generate_checksum(packet))
             logger.info("Descarga {:,.3f}%".format((rec_size/size)*100))
         except timeout as e:
             timeout_count += 1

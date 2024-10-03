@@ -11,7 +11,7 @@ from lib.exceptions import InvalidPortException, validate_port, validate_directo
 from lib.logger import logger
 from lib.message_queue import MessageQueue
 from lib.protocol import MAX_FILE_SIZE, OPERATION_DOWNLOAD, Start
-from lib.stop_and_wait import upload
+from lib.version import upload
 
 
 def get_args():

@@ -1,2 +1,0 @@
-root -> debian32
-dylan -> 123123
