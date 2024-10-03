@@ -146,17 +146,19 @@ class Error(Message):
         return 'Ocurrio un error desconocido al intentar obtener el archivo'
 
 class SACK(Message):
-    def __init__(self, received_blocks):
-        super().__init__(SACK.type)
+    type = 6
+
+    def __init__(self, uid, received_blocks):
+        self.uid = uid
         self.received_blocks = received_blocks
 
     def write(self):
         sack_data = ",".join(f"{start}-{end}" for start, end in self.received_blocks)
-        return super().write() + sack_data.encode()
+        return sack_data.encode()
 
     @classmethod
     def read(cls, data: bytes):
         base_message = Message.read(data)
         sack_data = data[len(base_message):].decode()
         blocks = [(int(start), int(end)) for start, end in (block.split('-') for block in sack_data.split(','))]
-        return SACK(blocks)
+        return SACK(base_message.uid, blocks)

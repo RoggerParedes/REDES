@@ -7,7 +7,7 @@ from lib.protocol import TIMEOUT, Message, Data, ACK, SACK, NACK, MAX_TIMES_TIME
 from lib.logger import logger
 
 
-def download(queue: MessageQueue, fd: BinaryIO, size):
+def download(queue: MessageQueue, file: BinaryIO, size):
     logger.info("ALGORITMO -> RECOVERY TCP + SELECTIVE ACK")
     queue.set_timeout(TIMEOUT)
     read_count = 1
@@ -24,15 +24,16 @@ def download(queue: MessageQueue, fd: BinaryIO, size):
             check, rec_data = verify_checksum(receive)
             if check:
                 message = Message.read(rec_data)
-                logger.debug(f"Recibimos uid {message.uid} y esperábamos {read_count}")
                 if message.type == Data.type:
                     if message.uid == read_count:
                         rec_size += len(message.data)
-                        fd.write(message.data)
+                        file.write(message.data)
+                        logger.debug(f"DATA RECV: {message.data}")
                         read_flag = True
                         read_count += 1
                         while read_count in received_data:
-                            fd.write(received_data[read_count])
+                            file.write(received_data[read_count])
+                            logger.debug(f"DATA BLOCKS RECV: {received_data[read_count]}")
                             rec_size += len(received_data[read_count])
                             del received_data[read_count]
                             read_count += 1
@@ -40,7 +41,7 @@ def download(queue: MessageQueue, fd: BinaryIO, size):
                     elif message.uid > read_count:
                         received_data[message.uid] = message.data
                         sack_blocks.append((message.uid, message.uid + len(message.data)))
-                        packet = SACK(sack_blocks).write()  # Enviar SACK con bloques recibidos
+                        packet = SACK(message.uid, sack_blocks).write()  # Enviar SACK con bloques recibidos
                 elif message.uid < read_count:
                     read_flag = True
                     logger.debug(f"Reenviamos el ACK {message.uid} para sincronizar")

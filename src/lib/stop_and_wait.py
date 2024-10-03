@@ -65,17 +65,14 @@ def download(queue: MessageQueue, fd: BinaryIO, size):
                     fd.write(message.data)
                     read_flag = True
                     packet = ACK(read_count).write()
-                    packet = generate_checksum(packet)
                     read_count += 1
                 elif message.type == Data.type and message.uid < read_count:
                     read_flag = True
                     logger.debug(f"Reenviamos el ACK {message.uid} para sincronizar")
                     packet = ACK(message.uid).write()
-                    packet = generate_checksum(packet)
             if not read_flag:
                 packet = NACK(read_count).write()
-                packet = generate_checksum(packet)
-            queue.send(packet)
+            queue.send(generate_checksum(packet))
             logger.info("Descarga {:,.3f}%".format((rec_size/size)*100))
         except timeout as e:
             timeout_count += 1
